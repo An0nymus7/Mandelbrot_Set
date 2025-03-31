@@ -12,6 +12,7 @@ __global__ void mandelbrotKernel(unsigned char* output, int width, int height, f
 	float z_real = 0, z_imag = 0;
 	int i = 0;
 
+//try out without the second part of the condition in the while
 	while (i < max_iter && z_real * z_real + z_imag * z_imag <= 4.0f)
 	{
 		float tmp = z_real * z_real - z_imag * z_imag + real;

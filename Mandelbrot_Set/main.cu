@@ -4,8 +4,9 @@
 #include <iostream>
 
 int main() {
-    float x_min = -2.0f, x_max = 1.0f;
-    float y_min = -1.5f, y_max = 1.5f;
+    double x_min = -2.0, x_max = 1.0;
+    double y_min = -1.5, y_max = 1.5;
+
     bool needsUpdate = true;
     sf::Vector2i lastMousePos;
     bool isDragging = false;

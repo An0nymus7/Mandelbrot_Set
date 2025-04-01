@@ -5,15 +5,21 @@ __global__ void mandelbrotKernel(unsigned char* output, int width, int height, d
     int idy = blockIdx.y * blockDim.y + threadIdx.y;
     if (idx >= width || idy >= height) return;
 
+    // Shared memory for z_real and z_imag (2 doubles per thread)
+    extern __shared__ double shared_data[];
+    double* z_real_shared = &shared_data[threadIdx.y * blockDim.x * 2 + threadIdx.x * 2];
+    double* z_imag_shared = &shared_data[threadIdx.y * blockDim.x * 2 + threadIdx.x * 2 + 1];
+
     double real = x_min + (x_max - x_min) * idx / (double)width;
     double imag = y_min + (y_max - y_min) * idy / (double)height;
-    double z_real = 0, z_imag = 0;
+    *z_real_shared = 0;
+    *z_imag_shared = 0;
     int iter = 0;
 
-    while (iter < MAX_ITER && z_real * z_real + z_imag * z_imag <= 4.0) {
-        double temp = z_real * z_real - z_imag * z_imag + real;
-        z_imag = 2 * z_real * z_imag + imag;
-        z_real = temp;
+    while (iter < MAX_ITER && (*z_real_shared) * (*z_real_shared) + (*z_imag_shared) * (*z_imag_shared) <= 4.0) {
+        double temp = (*z_real_shared) * (*z_real_shared) - (*z_imag_shared) * (*z_imag_shared) + real;
+        *z_imag_shared = 2 * (*z_real_shared) * (*z_imag_shared) + imag;
+        *z_real_shared = temp;
         iter++;
     }
 
@@ -33,8 +39,9 @@ __global__ void mandelbrotKernel(unsigned char* output, int width, int height, d
 }
 
 void computeMandelbrot(unsigned char* d_output, int width, int height, double x_min, double x_max, double y_min, double y_max) {
-    dim3 blockSize(16, 16); // Back to original, reliable size
+    dim3 blockSize(16, 16); // 256 threads/block
     dim3 gridSize((width + blockSize.x - 1) / blockSize.x, (height + blockSize.y - 1) / blockSize.y);
-    mandelbrotKernel << <gridSize, blockSize >> > (d_output, width, height, x_min, x_max, y_min, y_max);
+    size_t sharedMemSize = blockSize.x * blockSize.y * 2 * sizeof(double); // 4 KB for 16x16 block
+    mandelbrotKernel << <gridSize, blockSize, sharedMemSize >> > (d_output, width, height, x_min, x_max, y_min, y_max);
     cudaDeviceSynchronize();
 }

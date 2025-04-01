@@ -6,7 +6,6 @@
 int main() {
     double x_min = -2.0, x_max = 1.0;
     double y_min = -1.5, y_max = 1.5;
-
     bool needsUpdate = true;
     sf::Vector2i lastMousePos;
     bool isDragging = false;
@@ -30,7 +29,7 @@ int main() {
     initWindow(window, texture, sprite);
 
     // Initial render
-    computeMandelbrot(d_output,WIDTH, HEIGHT, x_min, x_max, y_min, y_max);
+    computeMandelbrot(d_output, WIDTH, HEIGHT, x_min, x_max, y_min, y_max);
     cudaMemcpy(h_output, d_output, WIDTH * HEIGHT * 4, cudaMemcpyDeviceToHost);
     updateTexture(texture, h_output);
 

@@ -19,6 +19,9 @@ void updateTexture(sf::Texture& texture, unsigned char* h_output) {
 
 void handleEvents(sf::RenderWindow& window, double& x_min, double& x_max, double& y_min, double& y_max, bool& needsUpdate, sf::Vector2i& lastMousePos, bool& isDragging) {
     sf::Event event;
+    // Initial bounds for zoom-out limit
+    const double initial_x_min = -2.0, initial_x_max = 1.0;
+    const double initial_y_min = -1.5, initial_y_max = 1.5;
 
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
@@ -38,6 +41,12 @@ void handleEvents(sf::RenderWindow& window, double& x_min, double& x_max, double
             double new_x_max = mx + new_width * (1.0 - (double)mouse_pos.x / WIDTH);
             double new_y_min = my - new_height * ((double)mouse_pos.y / HEIGHT);
             double new_y_max = my + new_height * (1.0 - (double)mouse_pos.y / HEIGHT);
+
+            // Limit zoom-out to initial bounds
+            if (new_x_max - new_x_min > initial_x_max - initial_x_min ||
+                new_y_max - new_y_min > initial_y_max - initial_y_min) {
+                continue; // Skip if zooming out beyond initial view
+            }
 
             x_min = new_x_min;
             x_max = new_x_max;
